@@ -21,9 +21,9 @@ class Darknet(nn.Module):
         super(Darknet, self).__init__()
         self.features = features
         self.classifier = nn.Sequential(
-            nn.Linear(1024 * S * S, 4096),
+            nn.LazyLinear(4096,bias=True),
             nn.LeakyReLU(0.1),
-            nn.Linear(4096, S * S * (B * 5 + C)),
+            nn.LazyLinear(S * S * (B * 5 + C),bias=True),
         )
 
         if path is None:
@@ -81,11 +81,11 @@ def make_layers(cfg):
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         elif isinstance(v, tuple):
             if len(v) == 3:
-                # Conv (kernel_size, out_channels, stride)
-                layers += [nn.Conv2d(in_channels, out_channels=v[1], kernel_size=v[0], stride=2)]
+                # LazyConv (out_channels,kernel,stride)
+                layers += [nn.LazyConv2d(out_channels=v[1], kernel_size=v[0], stride=2)]
             else:
-                # Conv (kernel_size, out_channels)
-                layers += [nn.Conv2d(in_channels, out_channels=v[1], kernel_size=v[0])]
+                # LazyConv (out_channels,kernel)
+                layers += [nn.LazyConv2d(out_channels=v[1], kernel_size=v[0])]
                 layers += [nn.BatchNorm2d(num_features=v[1])]  # BN
                 print('[new] BN is added.')
 
